@@ -23,8 +23,8 @@ class Ball:
 
     
     def reset(self):
-        # y_vel_lst = [-50,0,50]
-        # self.y_vel = random.choice(y_vel_lst)
+        y_vel_lst = [-50,0,50]
+        self.y_vel = random.choice(y_vel_lst)
         self.x = self.original_x
         self.y = self.original_y    
         self.x_vel *= -1

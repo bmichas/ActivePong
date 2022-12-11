@@ -1,46 +1,48 @@
 import pygame
 
 class Simulation:
-    def __init__(self, fps ,game, win_score) -> None:
+    def __init__(self, fps ,game, agent, win_score) -> None:
         self.fps = fps
-        self.enviroment = game
+        self.env = game
         self.win_score = win_score
+        self.agent = agent
         self.clock = pygame.time.Clock()
+        self.left_win_rate = 0
+        self.right_win_rate = 0
+
+    
+    def set_fps(self, fps):
+        self.fps = fps
+
+
+    def set_win_score(self, win_score):
+        self.win_score = win_score
+
+    
+    def reset_win_rate(self):
         self.left_win_rate = 0
         self.right_win_rate = 0
 
 
     def run(self):
-        run = True
-        while run:
+        state = self.env.reset()
+        done = False
+
+        while not done:
             self.clock.tick(self.fps)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-                    break
-     
-            # PRINT TO CHECK IF NEXT STATES ARE WORKING
-            # current_state = self.enviroment.get_current_state()
-            # actions = self.enviroment.get_possible_actions(current_state)
-            # for action in actions:
-            #     next_states = self.enviroment.get_next_states(current_state, action)
-            #     print("State: " + str(current_state) + " action: " + str(action) + " " + "list of possible next states: ", str(next_states))
-
-            
-            self.enviroment.step()
-            # print(self.enviroment.get_reward())
-            self.enviroment.draw()
-            won = False
-            if self.enviroment.left_score >= self.win_score:
+            action = self.agent.get_action(state[1])
+            next_state, reward, done, _  = self.env.step(action)
+            self.env.draw()
+            # state = (ball_state, right_paddle_state, left_paddle_state)
+            self.agent.update(state, action, reward, next_state)
+            if self.env.left_score >= self.win_score:
                 self.left_win_rate += 1
-                won = True
-            elif self.enviroment.right_score >= self.win_score:
+            elif self.env.right_score >= self.win_score:
                 self.right_win_rate += 1
-                won = True
 
-            if won:
-                self.enviroment.reset()
-                print(self.left_win_rate, ':', self.right_win_rate)
-                run = False
+            if done:
+                # print(self.left_win_rate, ':', self.right_win_rate)
+                pygame.display.update()
+                break
 
             pygame.display.update()
