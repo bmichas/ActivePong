@@ -31,6 +31,7 @@ class Simulation:
         while not done:
             self.clock.tick(self.fps)
             next_state, reward, done, _  = self.env.step(action)
+            print(state)
             self.env.draw()
             # state = (ball_state, ball_velocity, left_paddle_state)
             action = self.agent.update(state, action, reward, next_state)

@@ -216,7 +216,7 @@ class Pong:
 
     def get_current_state(self):
         state = ((self.ball.x, self.ball.y, ), (self.ball.x_vel, self.ball.y_vel), (self.left_paddle.x, self.left_paddle.y))
-        return hash(state)
+        return state
 
 
     def get_reward(self):
