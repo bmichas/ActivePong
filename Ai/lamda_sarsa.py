@@ -50,7 +50,6 @@ class SARSALambdaAgent:
                 self.set_qvalue(lambda_state, lambda_action, value)
                 self._evalues[lambda_state][lambda_action] = gamma * self.lambda_value * self._evalues[lambda_state][lambda_action]
         
-
         return next_action
 
     def get_best_action(self, state):

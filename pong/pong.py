@@ -215,21 +215,22 @@ class Pong:
         
 
     def get_current_state(self):
-        return ((self.ball.x, self.ball.y), (self.right_paddle.x, self.right_paddle.y), (self.left_paddle.x, self.left_paddle.y))
+        state = ((self.ball.x, self.ball.y, ), (self.ball.x_vel, self.ball.y_vel), (self.left_paddle.x, self.left_paddle.y))
+        return hash(state)
 
 
     def get_reward(self):
         if self.left_hit_count_prev < self.left_hit_count:
             self.left_hit_count_prev = self.left_hit_count
-            return 1
-        elif self.right_score_prev < self.right_score:
-            self.right_score_prev = self.right_score
-            return -1
-        elif self.left_score_prev < self.left_score:
-            if self.left_score == self.win_score:
-                return 5
-            self.left_score_prev = self.left_score
             return 2
+        # elif self.right_score_prev < self.right_score:
+        #     self.right_score_prev = self.right_score
+        #     return -1
+        # elif self.left_score_prev < self.left_score:
+        #     if self.left_score == self.win_score:
+        #         return 5
+        #     self.left_score_prev = self.left_score
+        #     return 2
         else:
             return 0
 

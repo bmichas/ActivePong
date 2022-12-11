@@ -38,6 +38,8 @@ class QLearningAgent:
         updated_qvalue = (1 - learning_rate) * self.get_qvalue(state, action) + \
                                     (learning_rate*(reward + gamma * self.get_value(next_state)))
         self.set_qvalue(state, action, updated_qvalue)
+        next_action = self.get_action(next_state)
+        return next_action
 
 
     def get_best_action(self, state):

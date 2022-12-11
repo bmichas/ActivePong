@@ -10,7 +10,7 @@ class Ball:
         self.width = width
         self.height = height
         self.x_vel = velocity
-        self.y_vel = 0
+        self.y_vel = random.choice([-50,0,50])
 
     
     def draw(self, win):
@@ -23,9 +23,7 @@ class Ball:
 
     
     def reset(self):
-        y_vel_lst = [-50,0,50]
-        self.y_vel = random.choice(y_vel_lst)
         self.x = self.original_x
         self.y = self.original_y    
         self.x_vel *= -1
-        self.y_vel = 0
+        self.y_vel = random.choice([-50,0,50])

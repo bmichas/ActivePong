@@ -60,6 +60,9 @@ class ExpectedSARSAAgent:
         updated_qvalue = (1 - learning_rate) * self.get_qvalue(state, action) + \
                                     (learning_rate*(reward + gamma * sum_pi))
         self.set_qvalue(state, action, updated_qvalue)
+
+        next_action = self.get_action(state)
+        return next_state
         
 
     def get_best_action(self, state):

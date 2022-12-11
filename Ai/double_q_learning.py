@@ -28,6 +28,9 @@ class DQLearningAgent:
         else:
             value = self._qvaluesB[state][action] + learning_rate * (reward + gamma * self._qvaluesA[next_state][self.get_best_action(state)] - self._qvaluesB[state][action])
             self._qvaluesB[state][action] = value
+
+        next_action = self.get_action(next_state)
+        return next_action
         
 
     def get_best_action(self, state):

@@ -27,21 +27,20 @@ class Simulation:
     def run(self):
         state = self.env.reset()
         done = False
-
+        action = self.agent.get_action(state)
         while not done:
             self.clock.tick(self.fps)
-            action = self.agent.get_action(state[1])
             next_state, reward, done, _  = self.env.step(action)
             self.env.draw()
-            # state = (ball_state, right_paddle_state, left_paddle_state)
-            self.agent.update(state, action, reward, next_state)
+            # state = (ball_state, ball_velocity, left_paddle_state)
+            action = self.agent.update(state, action, reward, next_state)
+            state = next_state
             if self.env.left_score >= self.win_score:
                 self.left_win_rate += 1
             elif self.env.right_score >= self.win_score:
                 self.right_win_rate += 1
 
             if done:
-                # print(self.left_win_rate, ':', self.right_win_rate)
                 pygame.display.update()
                 break
 

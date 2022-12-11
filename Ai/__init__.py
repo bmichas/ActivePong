@@ -1,5 +1,3 @@
-from .simple_ai import SimpleAi
-from .in_place import InPlace
 from .random_ai import RandomAi
 from .double_q_learning import DQLearningAgent
 from .expected_sarsa import ExpectedSARSAAgent
