@@ -57,8 +57,8 @@ class Pong:
     def _draw_score(self):
         left_score_text = self.SCORE_FONT.render(f"{self.left_score}", 1, self.WHITE)
         right_score_text = self.SCORE_FONT.render(f"{self.right_score}", 1, self.WHITE)
-        self.window.blit(left_score_text, (self.window_width // 2 - 50, 50))
-        self.window.blit(right_score_text, (self.window_width // 2 + 25, 50))
+        self.window.blit(left_score_text, (self.window_width // 2 - 100, 50))
+        self.window.blit(right_score_text, (self.window_width // 2 + 50, 50))
 
 
     def _handle_collision(self, ball, left_paddle, right_paddle):
@@ -207,7 +207,7 @@ class Pong:
             self.left_score_prev = self.left_score
             self.left_score += 1
 
-        return self.get_current_state, self.get_reward(), self.is_terminal(), None
+        return self.get_current_state(), self.get_reward(), self.is_terminal(), None
 
             
     def get_possible_actions(self, state):    
@@ -215,8 +215,8 @@ class Pong:
         
 
     def get_current_state(self):
-        state = ((self.ball.x, self.ball.y, ), (self.ball.x_vel, self.ball.y_vel), (self.left_paddle.x, self.left_paddle.y))
-        return state
+        state = ((self.ball.x, self.ball.y), (self.ball.x_vel, self.ball.y_vel), (self.left_paddle.x, self.left_paddle.y))
+        return hash(state)
 
 
     def get_reward(self):
