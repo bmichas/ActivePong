@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 
 LEARN_EPOCH = 100
-GAME_EPOCH = 10
+GAME_EPOCH = 100
 WIN_SCORE = 10
 WIDTH, HEIGHT = 350, 350
 # WIDTH, HEIGHT = 750, 550
@@ -22,11 +22,11 @@ VELOCITY = 50
 
 env = Pong(WIDTH, HEIGHT, VELOCITY, WIN_SCORE)
 random_ai = RandomAi()
-agent_sarsa = SARSAAgent(alpha = 0.5, epsilon = 0.4, discount = 0.99, get_legal_actions = env.get_possible_actions)
-agent_q = QLearningAgent(alpha = 0.5, epsilon = 0.4, discount = 0.99,get_legal_actions = env.get_possible_actions)
-agent_expected = ExpectedSARSAAgent(alpha = 0.4, epsilon = 0.1, discount = 0.99, get_legal_actions = env.get_possible_actions)
-agent_lambda = SARSALambdaAgent(alpha = 0.4, epsilon = 0.1, discount = 0.99, get_legal_actions = env.get_possible_actions, lambda_value = 0.5)
-agent_dq = DQLearningAgent(alpha = 0.4, epsilon = 0.1, discount = 1, get_legal_actions = env.get_possible_actions)
+agent_sarsa = SARSAAgent(alpha = 0.5, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions)
+agent_q = QLearningAgent(alpha = 0.5, epsilon = 0.01, discount = 0.99,get_legal_actions = env.get_possible_actions)
+agent_expected = ExpectedSARSAAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions)
+agent_lambda = SARSALambdaAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions, lambda_value = 0.5)
+agent_dq = DQLearningAgent(alpha = 0.4, epsilon = 0.01, discount = 1, get_legal_actions = env.get_possible_actions)
 
 AGENT_LIST = [agent_sarsa, agent_q, agent_expected, agent_lambda, agent_dq]
 # AGENT_LIST = [agent_lambda]
