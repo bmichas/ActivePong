@@ -36,7 +36,13 @@ class Simulation:
             next_state, reward, done, _  = self.env.step(action)
             self.env.draw()
             # state = (ball_state, ball_velocity, left_paddle_state)
-            action = self.agent.update(state, action, reward, next_state)
+            
+            if self.agent.name == 'MCTS':
+                action = self.agent.update(state, action, reward, next_state)
+
+            else:
+                action = self.agent.update(hash(state), action, reward, hash(next_state)) 
+        
             state = next_state
             if self.env.left_score >= self.win_score:
                 self.left_win_rate += 1
