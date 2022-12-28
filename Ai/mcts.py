@@ -98,8 +98,9 @@ class MCTS:
             state = next_state
             path.append(hash(state))
             is_terminal, reward = self.env.get_reward_state(state)
-            if is_terminal and reward == 2:
+            if is_terminal:
                 action = self.tree[path[1]]['action']
+                self._back_propagation(path, reward)
                 break
             
         return action
@@ -131,20 +132,24 @@ class MCTS:
         for node in path:
             self.tree[node]['t'] += reward
             self.tree[node]['n'] += 1
+            # print(self.tree[node])
 
         for node in path:
-            state = self.tree[node]['state']
-            self._update_ucb1(state)
+            # state = self.tree[node]['state']
+            self._update_ucb1(node)
 
 
-    def _update_ucb1(self, state):
-        t = self.tree[hash(state)]['t']
-        n = self.tree[hash(state)]['n']
-        parent = self.tree[hash(state)]['parent']
+    def _update_ucb1(self, node):
+        t = self.tree[node]['t']
+        n = self.tree[node]['n']
+        parent = self.tree[node]['parent']
         parent_n = self.tree[parent]['n']
+        if parent_n == 0:
+            parent_n += 1
+
         vi = t/n
         ucb1 = vi + (2 * math.sqrt(np.log(parent_n) / n))
-        self.tree[hash(state)]['ucb1'] = ucb1
+        self.tree[node]['ucb1'] = ucb1
 
 
     def best_action(self, state):
