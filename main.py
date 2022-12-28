@@ -12,12 +12,13 @@ from tqdm import tqdm
 
 
 
-LEARN_EPOCH = 10000
+LEARN_EPOCH = 100
 GAME_EPOCH = 100
 WIN_SCORE = 10
+MCTS_SIM = 1000
 WIDTH, HEIGHT = 350, 350
-# WIDTH, HEIGHT = 750, 550
-FPS = 10000
+WIDTH, HEIGHT = 650, 450
+FPS = 1000
 VELOCITY = 50
 
 
@@ -28,7 +29,7 @@ agent_q = QLearningAgent(alpha = 0.5, epsilon = 0.01, discount = 0.99,get_legal_
 agent_expected = ExpectedSARSAAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions)
 agent_lambda = SARSALambdaAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions, lambda_value = 0.5)
 agent_dq = DQLearningAgent(alpha = 0.4, epsilon = 0.01, discount = 1, get_legal_actions = env.get_possible_actions)
-agent_mcts = MCTS(get_legal_actions = env.get_possible_actions)
+agent_mcts = MCTS(get_legal_actions = env.get_possible_actions, env=env, simulation_no=MCTS_SIM)
 
 AGENT_LIST = [agent_sarsa, agent_q, agent_expected, agent_lambda, agent_dq, agent_mcts]
 AGENT_LIST = [agent_mcts]
@@ -37,26 +38,31 @@ def learn_play(env, agent):
     print(agent.name)
     env.set_left_ai(agent)
     env.set_right_ai(random_ai)
-
     sim1 = Simulation(FPS, env, agent, WIN_SCORE)
-    sim1.set_win_score(WIN_SCORE)
-    env.set_win_score(WIN_SCORE)
-    if agent.name == 'MCTS':
-        sim1.set_win_score(1)
-        env.set_win_score(1)
+    if agent.name == "MCTS":
+        sim1.set_win_score(10)
+        env.set_win_score(10)
+        for i in tqdm(range(GAME_EPOCH)):
+            if i == GAME_EPOCH -1:
+                sim1.set_fps(10)
 
-    for _ in tqdm(range(LEARN_EPOCH)):
-        sim1.run()
+            sim1.run_mcts()
 
-    agent.turn_off_learning()
-    sim1.set_win_score(10)
-    env.set_win_score(10)
-    sim1.reset_win_rate()
-    for i in tqdm(range(GAME_EPOCH)):
-        if i == GAME_EPOCH -1:
-            sim1.set_fps(10)
+    else:
+        sim1.set_win_score(WIN_SCORE)
+        env.set_win_score(WIN_SCORE)
+        for _ in tqdm(range(LEARN_EPOCH)):
+            sim1.run()
+        
+        agent.turn_off_learning()
+        sim1.set_win_score(10)
+        env.set_win_score(10)
+        sim1.reset_win_rate()
+        for i in tqdm(range(GAME_EPOCH)):
+            if i == GAME_EPOCH -1:
+                sim1.set_fps(10)
 
-        sim1.run()
+            sim1.run()
 
     print(str(sim1.left_win_rate) + ' : ' + str(sim1.right_win_rate))
 

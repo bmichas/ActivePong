@@ -5,130 +5,161 @@ import numpy as np
 
 
 class MCTS:
-    def __init__(self, get_legal_actions) -> None:
+    def __init__(self, get_legal_actions, env, simulation_no) -> None:
         self.get_legal_actions = get_legal_actions
+        self.env = env
         self.tree = defaultdict(self.def_value)
         self.n = 0
         self.t = 0
-        self.v = 0
+        self.simulation_no = simulation_no
         self.name = 'MCTS'
 
+
+    def mcts_reset(self):
+        self.tree = defaultdict(self.def_value)
+        self.n = 0
+        self.t = 0
+
+
     def def_value(self):
-        return {'parent': None, 
-                'position': None,
-                'parent_position': None,
-                't': 0, 
-                'n': 0, 
+        return {'parent': None,
+                'action': None,
+                'state': None,
+                'childs': [],
+                't': 0,
+                'n': 0,
                 'ucb1': float('inf')}
+        
+
+    def _gen_ball_state(self, ball_state, ball_vel_state):
+        ball_state_x = ball_state[0]
+        ball_state_y = ball_state[1]
+        ball_vel_x = ball_vel_state[0]
+        ball_vel_y = ball_vel_state[1]
+        if ball_state_y + self.env.ball.height >= self.env.window_height:
+            ball_vel_y *= -1
+        
+        elif ball_state_y <= 0:
+            ball_vel_y *= -1
+        
+        ball_state_x += ball_vel_x
+        ball_state_y += ball_vel_y
+        return (ball_state_x, ball_state_y), (ball_vel_x, ball_vel_y)
 
 
-    def _expand(self, state, possible_actions):
-        possible_states = []
+    def _roll_out(self, state, action):
         ball_state = state[0]
         ball_vel_state = state[1]
         left_paddle_state = list(state[2])
+        ball_state, ball_vel_state = self._gen_ball_state(ball_state, ball_vel_state)
+        next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
+        if action == 'STAY':
+            next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
+
+        if action == 'UP':
+            left_paddle_state[1] -= 50
+            next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
+
+        if action == 'DOWN':
+            left_paddle_state[1] += 50
+            next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
+
+        return next_state, action
+
+
+    def _expand(self, state, possible_actions):
+        
+        self.tree[hash(state)]['state'] = state
         for action in possible_actions:
-            if action == 'STAY':
-                next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
-                possible_states.append(next_state)
-
-            if action == 'UP':
-                left_paddle_state[1] -= 50
-                next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
-                possible_states.append(next_state)
-
-            if action == 'DOWN':
-                left_paddle_state[1] += 50
-                next_state = (ball_state, ball_vel_state, tuple(left_paddle_state))
-                possible_states.append(next_state)
-
-            left_paddle_state = list(state[2])
-
-        for possible_state in possible_states:
-            if hash(possible_state) not in self.tree:
-                self.tree[hash(possible_state)]['parent'] = hash(state)
-                self.tree[hash(possible_state)]['position'] = possible_state[2]
-                self.tree[hash(possible_state)]['parent_position'] = state[2]
-
-        return self._select()
-        
-
-    def _select(self):
-        max_val = float('-inf')
-        possible_actions = []
-        for child in self.tree:
-            if self.tree[child]['ucb1'] >= max_val:
-                max_val = self.tree[child]['ucb1']
-                possible_actions.append(self.tree[child])
-
-        action = random.choice(possible_actions)
-        return self._count_action(action)
+            next_state, action = self._roll_out(state, action)
+            self.tree[hash(state)]['childs'].append(hash(next_state))
+            self.tree[hash(next_state)]['state'] = next_state
+            self.tree[hash(next_state)]['action'] = action
+            self.tree[hash(next_state)]['parent'] = hash(state)
 
 
-    def _roll_out(self, reward):
-        self.v += reward
-        
+    def _select(self, state, possible_actions):
+        is_terminal = False
+        path = []
+        path.append(hash(state))
+        while not is_terminal:
+            if self.n == 0:
+                self._expand(state, possible_actions)
+                self.n += 1
+
+            best_child = self.select_best_child(self.tree[hash(state)]['childs'])
+            if not self.tree[best_child]['childs']:
+                possible_actions = self.get_legal_actions(state)
+                child_state = self.tree[best_child]['state']
+                self._expand(child_state, possible_actions)
+            
+            best_action = self.tree[best_child]['action']
+            next_state, action = self._roll_out(state, best_action)
+            state = next_state
+            path.append(hash(state))
+            is_terminal, reward = self.env.get_reward_state(state)
+            if is_terminal and reward == 2:
+                action = self.tree[path[1]]['action']
+                break
+            
+        return action
+
+    def select_best_child(self, child_list):
+        best_ucb1 = float("-inf")
+        best_child_list = []
+        if not child_list:
+            done = False
+            while not done:
+                best_child_list = list(self.tree.keys())
+                best_child = random.choice(best_child_list)
+                if self.tree[best_child]['parent'] != None:
+                    done = True
+                    break
+
+        else:
+            for child in child_list:
+                if best_ucb1 <= self.tree[child]['ucb1']:
+                    best_child_list.append(child)
+                    best_ucb1 = self.tree[child]['ucb1']
+            best_child = random.choice(best_child_list)
+
+        return best_child
 
 
-    def _back_propagation(self, leaf):
-        leaf['t'] += self.v
-        leaf['n'] += 1
-        parent = leaf['parent']
-        self.tree[parent]['t'] += self.v
-        self.tree[parent]['n'] += 1
-        self._update_ucb1(leaf)
+    def _back_propagation(self, path, reward): 
+        path.reverse()
+        for node in path:
+            self.tree[node]['t'] += reward
+            self.tree[node]['n'] += 1
+
+        for node in path:
+            state = self.tree[node]['state']
+            self._update_ucb1(state)
 
 
-    def _update_ucb1(self, leaf):
-        t=leaf['t']
-        n=leaf['n']
-        parent_n = self.tree[leaf['parent']]['n']
+    def _update_ucb1(self, state):
+        t = self.tree[hash(state)]['t']
+        n = self.tree[hash(state)]['n']
+        parent = self.tree[hash(state)]['parent']
+        parent_n = self.tree[parent]['n']
         vi = t/n
         ucb1 = vi + (2 * math.sqrt(np.log(parent_n) / n))
-        leaf['ucb1'] = ucb1
-
-    
-    def _count_action(self, action):
-        y_new = action['position'][1]
-        y_old = action['parent_position'][1]
-        diff = y_new - y_old
-        if diff == 0:
-            return 'STAY', action
-
-        if diff > 0:
-            return 'DOWN', action
-
-        if diff < 0:
-            return 'UP', action
+        self.tree[hash(state)]['ucb1'] = ucb1
 
 
-    def get_action(self, state):
+    def best_action(self, state):
         possible_actions = self.get_legal_actions(state)
-        if len(possible_actions) == 0:
-            return None
-        
-        chosen_action, leaf = self._expand(state, possible_actions)
-        return chosen_action
-
-
-    def update(self, state, action, reward, next_state):
-        possible_actions = self.get_legal_actions(state)
-        if len(possible_actions) == 0:
+        # print('=', state)
+        ball_vel_x = state[1][0]
+        if len(possible_actions) == 0 or ball_vel_x > 0:
             return None
 
-        chosen_action, leaf = self._expand(state, possible_actions) 
-        if leaf['n'] == 0:
-            self._roll_out(reward)
+        else:
+            for _ in range(self.simulation_no):
+                chosen_action = self._select(state, possible_actions)
 
-        self._back_propagation(leaf)
-        self.v = 0
-        possible_actions = self.get_legal_actions(next_state)
-        chosen_action, leaf = self._expand(next_state, possible_actions) 
+        self.mcts_reset()
         return chosen_action
-
-
-    def turn_off_learning(self):
-        pass
 
 
 

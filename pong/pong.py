@@ -223,16 +223,25 @@ class Pong:
         if self.left_hit_count_prev < self.left_hit_count:
             self.left_hit_count_prev = self.left_hit_count
             return 2
-        # elif self.right_score_prev < self.right_score:
-        #     self.right_score_prev = self.right_score
-        #     return -1
-        # elif self.left_score_prev < self.left_score:
-        #     if self.left_score == self.win_score:
-        #         return 5
-        #     self.left_score_prev = self.left_score
-        #     return 2
+       
         else:
             return 0
+
+    
+    def get_reward_state(self, state):
+        ball_x = state[0][0]
+        ball_y = state[0][1]
+        left_paddle_x = state[2][0]
+        left_paddle_y = state[2][1]
+
+        if ball_y >= left_paddle_y and ball_y  < left_paddle_y + self.left_paddle.height:
+                if ball_x - self.ball.width <= left_paddle_x:
+                    return True, 2
+
+        elif ball_x == 0:
+            return True, -1
+
+        return False, 0
 
 
     def is_terminal(self):
