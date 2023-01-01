@@ -8,16 +8,17 @@ from Ai import SARSALambdaAgent
 from Ai import QLearningAgent
 from Ai import SARSAAgent
 from Ai import MCTS
+from Ai import ValueAproxAgent
 from tqdm import tqdm
 
 
 
-LEARN_EPOCH = 100
+LEARN_EPOCH = 300
 GAME_EPOCH = 100
 WIN_SCORE = 10
 MCTS_SIM = 1000
 WIDTH, HEIGHT = 350, 350
-WIDTH, HEIGHT = 650, 450
+# WIDTH, HEIGHT = 650, 450
 FPS = 1000
 VELOCITY = 50
 
@@ -29,10 +30,11 @@ agent_q = QLearningAgent(alpha = 0.5, epsilon = 0.01, discount = 0.99,get_legal_
 agent_expected = ExpectedSARSAAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions)
 agent_lambda = SARSALambdaAgent(alpha = 0.4, epsilon = 0.01, discount = 0.99, get_legal_actions = env.get_possible_actions, lambda_value = 0.5)
 agent_dq = DQLearningAgent(alpha = 0.4, epsilon = 0.01, discount = 1, get_legal_actions = env.get_possible_actions)
+agent_value_aprox = ValueAproxAgent(alpha = 0.5, epsilon = 0.01, discount = 0.99,get_legal_actions = env.get_possible_actions)
 agent_mcts = MCTS(get_legal_actions = env.get_possible_actions, env=env, simulation_no=MCTS_SIM)
 
-AGENT_LIST = [agent_sarsa, agent_q, agent_expected, agent_lambda, agent_dq, agent_mcts]
-AGENT_LIST = [agent_mcts]
+AGENT_LIST = [agent_sarsa, agent_q, agent_expected, agent_lambda, agent_dq, agent_value_aprox, agent_mcts]
+AGENT_LIST = [agent_value_aprox]
 
 def learn_play(env, agent):
     print(agent.name)

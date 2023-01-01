@@ -200,7 +200,7 @@ class Pong:
             self.right_score_prev = self.right_score
             self.right_score += 1
         
-        elif self.ball.x == self.window_width:
+        elif self.ball.x == self.window_width - self.ball.width:
             self.ball.reset()
             self.left_paddle.reset()
             self.right_paddle.reset()

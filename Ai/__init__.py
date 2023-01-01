@@ -5,3 +5,4 @@ from .lamda_sarsa import SARSALambdaAgent
 from .q_learning import QLearningAgent
 from .sarsa import SARSAAgent
 from .mcts import MCTS
+from .value_aproximation import ValueAproxAgent
