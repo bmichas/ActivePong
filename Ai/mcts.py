@@ -132,10 +132,6 @@ class MCTS:
         for node in path:
             self.tree[node]['t'] += reward
             self.tree[node]['n'] += 1
-            # print(self.tree[node])
-
-        for node in path:
-            # state = self.tree[node]['state']
             self._update_ucb1(node)
 
 
