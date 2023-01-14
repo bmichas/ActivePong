@@ -30,14 +30,14 @@ class Simulation:
         action = self.agent.get_action(state)
         while not done:
             self.clock.tick(self.fps)
-            if self.agent.name == 'ExpectedSARSAAgent':
+            if self.agent.name == 'ExpectedSARSAAgent' or self.agent.name == 'ValueAproxAgent':
                 action = self.agent.get_action(state)
 
             next_state, reward, done, _  = self.env.step(action)
             self.env.draw()
             # state = (ball_state, ball_velocity, left_paddle_state)
             if self.agent.name == 'ValueAproxAgent':
-                action = self.agent.update(hash(state), action, reward, hash(next_state), next_state) 
+                self.agent.update(state, action, reward, next_state) 
                 state = next_state
 
             else:

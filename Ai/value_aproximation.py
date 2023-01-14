@@ -6,31 +6,44 @@ import math
 
 
 class ValueAproxAgent:
-    def __init__(self, alpha, epsilon, discount, get_legal_actions):
+    def __init__(self, alpha, epsilon, discount, width, height, get_legal_actions):
         self.get_legal_actions = get_legal_actions
-        self._qvalues = defaultdict(lambda: defaultdict(lambda: 0))
         self.alpha = alpha
         self.epsilon = epsilon
         self.discount = discount
-        self.weights = [0.5, 0.5, 0.5]
+        self.weights = [0.5, 0.5, 0.5, 0.5, 0.5]
         self.name = 'ValueAproxAgent'
+        self.board_width = width
+        self.board_height = height
 
 
     def get_qvalue(self, state, action):
-        return self._qvalues[state][action]
+        value_function = self.get_value_function(state, action)
+        qvalue = 0
+        for i in range(len(value_function)):
+            qvalue += self.weights[i] * value_function[i]
+
+        return qvalue
 
 
-    def set_qvalue(self, state, action, value):
-        self._qvalues[state][action] = value
+    def count_f_position(self, state, action):
 
-
-    def count_f_position(self, state):
-        paddle_position = list(state[2])
         ball_position = list(state[0])
-        return math.dist(paddle_position, ball_position)
+        if action == "STAY":
+            paddle_position = list(state[2])
+            return math.dist(paddle_position, ball_position)/self.board_width
 
+        if action == "DOWN":
+            paddle_position = list(state[2])
+            paddle_position[1] += 50
+            return math.dist(paddle_position, ball_position)/self.board_width
+        
+        if action == "UP":
+            paddle_position = list(state[2])
+            paddle_position[1] -= 50
+            return math.dist(paddle_position, ball_position)/self.board_width
 
-    def count_f_velocity(self, state):
+    def count_f_velocity(self, state, action):
         factor = 1
         ball_vel = list(state[1])
         if ball_vel[0] < 0:
@@ -38,8 +51,22 @@ class ValueAproxAgent:
 
         return factor
 
-    def count_f_pallet(self, state):
-        return state[2][0]
+
+    def count_f_pallet(self, state, action):
+        if action == "STAY":
+            paddle_position = list(state[2])
+            return paddle_position[1]/self.board_height
+
+        if action == "DOWN":
+            paddle_position = list(state[2])
+            paddle_position[1] += 50
+            return paddle_position[1]/self.board_height
+        
+        if action == "UP":
+            paddle_position = list(state[2])
+            paddle_position[1] -= 50
+            return paddle_position[1]/self.board_height
+
 
     def get_value(self, state):
         possible_actions = self.get_legal_actions(state)
@@ -53,25 +80,24 @@ class ValueAproxAgent:
         max_value = max(q_values)
         return max_value
 
+
     def norm(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))
 
-    def update(self, state, action, reward, next_state, position):
+    
+    def get_value_function(self, state, action):
+        value_function = [self.count_f_position(state, action), self.count_f_pallet(state, action), self.count_f_velocity(state, action), state[0][0]/self.board_width, state[0][1]/self.board_height]
+        return self.norm(value_function)
+
+
+    def update(self, state, action, reward, next_state):
         gamma = self.discount
         learning_rate = self.alpha
-        value_function = [self.count_f_position(position), self.count_f_velocity(position), self.count_f_pallet(position)]
-        value_function = self.norm(value_function)
-        updated_qvalue = 0
-        for i in range(len(value_function)):
-            updated_qvalue += self.weights[i] * value_function[i]
-
-        self.set_qvalue(state, action, updated_qvalue)
         difference = (reward + gamma * self.get_value(next_state)) - self.get_qvalue(state, action)
+        value_function = self.get_value_function(state, action)
         for i in range(len(self.weights)):
             self.weights[i] += learning_rate * difference * value_function[i]
-        
-        next_action = self.get_action(next_state)
-        return next_action
+
 
 
     def get_best_action(self, state):
@@ -83,10 +109,10 @@ class ValueAproxAgent:
         for action in possible_actions:
             actions_qvalues_dict[action] = self.get_qvalue(state, action)
 
-        best_q_avlue = max(list(actions_qvalues_dict.values()))
+        best_q_value = max(list(actions_qvalues_dict.values()))
         best_actions = []
         for action in actions_qvalues_dict:
-            if actions_qvalues_dict[action] == best_q_avlue:
+            if actions_qvalues_dict[action] == best_q_value:
                 best_actions.append(action)
 
         best_action = random.choice(best_actions)
